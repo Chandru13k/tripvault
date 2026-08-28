@@ -110,6 +110,17 @@ All Auth endpoints are prefixed with `/api/auth`:
 | **POST** | `/api/auth/login` | Authenticate user & return JWT token | No |
 | **GET** | `/api/auth/me` | Retrieve current user profile details | **Yes** (Bearer Token) |
 
+### Trip Endpoints
+All Trip endpoints are prefixed with `/api/trips` and require authentication (`Authorization: Bearer <token>`).
+
+| Method | Endpoint | Description | Protected |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/api/trips` | Create a new trip for the logged-in user | **Yes** |
+| **GET** | `/api/trips` | Retrieve all trips belonging to the logged-in user | **Yes** |
+| **GET** | `/api/trips/:id` | Retrieve a specific trip | **Yes** (Ownership verified) |
+| **PUT** | `/api/trips/:id` | Update a specific trip | **Yes** (Ownership verified) |
+| **DELETE**| `/api/trips/:id` | Delete a specific trip | **Yes** (Ownership verified) |
+
 ---
 
 ## 🔒 Authentication Flow & Architecture
@@ -119,6 +130,22 @@ All Auth endpoints are prefixed with `/api/auth`:
 3. **Session Store**: The token and user profile object are saved in `localStorage` in the browser.
 4. **Authorized Calls**: The frontend reusable Axios client automatically attaches the `Authorization: Bearer <token>` header to all requests.
 5. **Route Protection**: If the user tries to access `/dashboard` without a token, the frontend redirects them to `/login`. If the token is invalid or expired, Axios interceptor clears the invalid token and securely logs out the user.
+6. **Data Ownership**: On the server, every Trip API validates that the trip belongs to the authenticated user ID (`req.user.id`). No user can access or modify another user's trips, even if they guess the MongoDB ObjectId.
+
+---
+
+## 🧪 Testing API Routes
+
+A test script is provided to verify all CRUD endpoints and security measures:
+
+```bash
+# From the server directory
+node scripts/testApi.js
+```
+This script verifies:
+- Trip Creation
+- Data isolation (User A cannot see User B's trips)
+- Ownership protection (User B cannot update/delete User A's trips)
 
 ---
 
@@ -132,3 +159,14 @@ All Auth endpoints are prefixed with `/api/auth`:
 - [x] **Protected Me Route**: `GET /api/auth/me` verifies tokens and returns authenticated user info.
 - [x] **Vite React UI**: Premium responsive UI pages: Home/Landing, Register, Login, and Dashboard.
 - [x] **Secure Routing**: Protected `/dashboard` path with custom route guard and logout hooks.
+
+## 📋 Week 2 Deliverables Checklist
+
+- [x] **Trip Schema**: Mongoose model with validation and `user` reference.
+- [x] **Trip APIs**: Full CRUD implemented for `/api/trips`.
+- [x] **Ownership Protection**: Backend prevents users from reading, editing, or deleting others' trips.
+- [x] **API Tests**: Automated script testing the endpoints and JWT authorization boundaries.
+- [x] **Dashboard List**: Renders trip cards displaying dates, ratings, and destination details.
+- [x] **Create & Edit Modal**: Pre-fills existing data for editing and validates form submission.
+- [x] **Delete Confirmation**: Verifies intent before removing travel memories.
+- [x] **Loading & Empty States**: User-friendly messaging when the vault is empty or waiting for network response.
