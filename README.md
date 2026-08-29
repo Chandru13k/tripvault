@@ -1,8 +1,8 @@
-# TripVault — Travel Memory Journal (Week 1 Setup)
+# TripVault — Travel Memory Journal
 
 TripVault is a full-stack MERN travel memory journal that enables users to log trips, upload photos, and securely store and share travel memories. 
 
-This repository contains the completed Week 1 deliverables, laying down a highly robust backend server, a database connection, and a premium React frontend user authentication system.
+This repository contains the completed Week 1 & 2 deliverables, including a highly robust backend server, database connection, premium React frontend authentication, and full Trip Management CRUD operations.
 
 ---
 
@@ -136,16 +136,18 @@ All Trip endpoints are prefixed with `/api/trips` and require authentication (`A
 
 ## 🧪 Testing API Routes
 
-A test script is provided to verify all CRUD endpoints and security measures:
+Automated test scripts are provided to verify all CRUD endpoints, security measures, and adversarial constraints:
 
 ```bash
 # From the server directory
 node scripts/testApi.js
+node scripts/qa_test.js
 ```
-This script verifies:
-- Trip Creation
+These scripts verify:
+- Trip Creation & Validation
 - Data isolation (User A cannot see User B's trips)
 - Ownership protection (User B cannot update/delete User A's trips)
+- Security bounds (Adversarial testing)
 
 ---
 
