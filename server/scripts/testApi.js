@@ -56,6 +56,19 @@ async function runTests() {
     user2Token = loginB.data.token;
     console.log('✅ Users registered and logged in.');
 
+    // 1.5 Test No-JWT
+    console.log('\n1.5 Testing No-JWT (GET /api/trips)');
+    try {
+      await fetchJSON(`${API_URL}/trips`);
+      throw new Error('No-JWT request succeeded when it should fail');
+    } catch (err) {
+      if (err.status === 401) {
+        console.log('✅ No-JWT request correctly returned 401.');
+      } else {
+        throw err;
+      }
+    }
+
     // 2. Test POST /api/trips
     console.log('\n2. Testing Trip Creation (POST /api/trips)');
     let createRes = await fetchJSON(`${API_URL}/trips`, {

@@ -12,11 +12,21 @@ const Dashboard = () => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTrip, setCurrentTrip] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const navigate = useNavigate();
 
+  const fetchTrips = async () => {
+    try {
+      const tripsRes = await api.get('/api/trips');
+      setTrips(tripsRes.data);
+    } catch (err) {
+      console.error('Error fetching trips:', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       try {
         const [userRes, tripsRes] = await Promise.all([
           api.get('/api/auth/me'),
@@ -37,7 +47,7 @@ const Dashboard = () => {
       }
     };
 
-    fetchData();
+    fetchInitialData();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -63,23 +73,23 @@ const Dashboard = () => {
 
   const handleSubmitTrip = async (tripData) => {
     if (currentTrip) {
-      // Update
-      const res = await api.put(`/api/trips/${currentTrip._id}`, tripData);
-      setTrips(trips.map(t => t._id === currentTrip._id ? res.data : t));
+      await api.put(`/api/trips/${currentTrip._id}`, tripData);
     } else {
-      // Create
-      const res = await api.post('/api/trips', tripData);
-      setTrips([res.data, ...trips]);
+      await api.post('/api/trips', tripData);
     }
+    await fetchTrips();
   };
 
   const handleDeleteTrip = async (tripId) => {
     if (window.confirm('Are you sure you want to delete this trip?')) {
       try {
+        setDeletingId(tripId);
         await api.delete(`/api/trips/${tripId}`);
-        setTrips(trips.filter(t => t._id !== tripId));
+        await fetchTrips();
       } catch (err) {
         alert('Failed to delete trip: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -206,16 +216,17 @@ const Dashboard = () => {
                 </button>
                 <button 
                   onClick={() => handleDeleteTrip(trip._id)}
+                  disabled={deletingId === trip._id}
                   style={{ 
                     flex: 1, padding: '0.5rem', fontSize: '0.9rem', 
                     background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', 
-                    borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
-                    transition: 'all 0.2s ease'
+                    borderRadius: '8px', cursor: deletingId === trip._id ? 'not-allowed' : 'pointer', fontWeight: 600,
+                    transition: 'all 0.2s ease', opacity: deletingId === trip._id ? 0.5 : 1
                   }}
-                  onMouseOver={(e) => { e.target.style.background = '#ef4444'; e.target.style.color = '#fff'; }}
-                  onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#ef4444'; }}
+                  onMouseOver={(e) => { if (deletingId !== trip._id) { e.target.style.background = '#ef4444'; e.target.style.color = '#fff'; } }}
+                  onMouseOut={(e) => { if (deletingId !== trip._id) { e.target.style.background = 'transparent'; e.target.style.color = '#ef4444'; } }}
                 >
-                  Delete
+                  {deletingId === trip._id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

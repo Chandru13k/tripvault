@@ -13,7 +13,15 @@ const tripSchema = new mongoose.Schema({
     type: Date
   },
   endDate: {
-    type: Date
+    type: Date,
+    validate: {
+      validator: function(value) {
+        // If either date is missing, skip validation
+        if (!this.startDate || !value) return true;
+        return value >= this.startDate;
+      },
+      message: 'End date must be after or equal to start date'
+    }
   },
   description: {
     type: String
@@ -26,7 +34,8 @@ const tripSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true // Added index for performance
   }
 }, {
   timestamps: true
