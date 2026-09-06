@@ -26,6 +26,12 @@ const tripSchema = new mongoose.Schema({
   description: {
     type: String
   },
+  coverImage: {
+    type: String
+  },
+  photos: [{
+    type: String
+  }],
   rating: {
     type: Number,
     min: [1, 'Rating must be at least 1'],

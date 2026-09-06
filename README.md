@@ -110,6 +110,13 @@ All Auth endpoints are prefixed with `/api/auth`:
 | **POST** | `/api/auth/login` | Authenticate user & return JWT token | No |
 | **GET** | `/api/auth/me` | Retrieve current user profile details | **Yes** (Bearer Token) |
 
+### User Profile Endpoints
+
+| Method | Endpoint | Description | Protected |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/users/:username/profile` | Retrieve public user profile & trips | No |
+| **PUT** | `/api/users/profile` | Update logged-in user's profile (bio/username) | **Yes** |
+
 ### Trip Endpoints
 All Trip endpoints are prefixed with `/api/trips` and require authentication (`Authorization: Bearer <token>`).
 
@@ -120,6 +127,7 @@ All Trip endpoints are prefixed with `/api/trips` and require authentication (`A
 | **GET** | `/api/trips/:id` | Retrieve a specific trip | **Yes** (Ownership verified) |
 | **PUT** | `/api/trips/:id` | Update a specific trip | **Yes** (Ownership verified) |
 | **DELETE**| `/api/trips/:id` | Delete a specific trip | **Yes** (Ownership verified) |
+| **POST**  | `/api/trips/:id/upload` | Upload a photo to a specific trip | **Yes** (Ownership verified) |
 
 ---
 
@@ -172,3 +180,13 @@ These scripts verify:
 - [x] **Create & Edit Modal**: Pre-fills existing data for editing and validates form submission.
 - [x] **Delete Confirmation**: Verifies intent before removing travel memories.
 - [x] **Loading & Empty States**: User-friendly messaging when the vault is empty or waiting for network response.
+
+## 📋 Week 3 Deliverables Checklist
+
+- [x] **Cloudinary Configuration**: Stored securely in `server/.env` with `.env.example` placeholders.
+- [x] **Image Upload API**: `POST /api/trips/:id/upload` protected by JWT & ownership limits. Uploads images safely to Cloudinary.
+- [x] **Cover & Gallery**: Added `coverImage` and `photos` array to Trip schema. Displays prominently on the UI.
+- [x] **Public Profile API**: `GET /api/users/:username/profile` fetches safe user data without JWT.
+- [x] **Public Profile View**: Navigates to `/profile/:username`. Works in incognito mode.
+- [x] **Edit Profile**: `PUT /api/users/profile` supports username and bio updates. Added UI for users to customize profiles.
+- [x] **Security Integrity**: Passwords, secrets, and other users' details are protected against unauthorized overrides or exposure.

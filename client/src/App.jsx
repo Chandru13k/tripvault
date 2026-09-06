@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import TripDetail from './pages/TripDetail';
+import PublicProfile from './pages/PublicProfile';
+import EditProfile from './pages/EditProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Landing Page Component
@@ -167,6 +170,23 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/trips/:id" 
+            element={
+              <ProtectedRoute>
+                <TripDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/edit-profile" 
+            element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/profile/:username" element={<PublicProfile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

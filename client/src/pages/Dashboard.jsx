@@ -71,13 +71,33 @@ const Dashboard = () => {
     setCurrentTrip(null);
   };
 
-  const handleSubmitTrip = async (tripData) => {
-    if (currentTrip) {
-      await api.put(`/api/trips/${currentTrip._id}`, tripData);
-    } else {
-      await api.post('/api/trips', tripData);
+  const handleSubmitTrip = async (tripData, imageFile) => {
+    try {
+      let tripId;
+      if (currentTrip) {
+        await api.put(`/api/trips/${currentTrip._id}`, tripData);
+        tripId = currentTrip._id;
+      } else {
+        const res = await api.post('/api/trips', tripData);
+        tripId = res.data._id;
+      }
+
+      // If an image was selected, upload it
+      if (imageFile && tripId) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        await api.post(`/api/trips/${tripId}/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+
+      await fetchTrips();
+    } catch (err) {
+      throw err; // Rethrow to let the modal handle the error display
     }
-    await fetchTrips();
   };
 
   const handleDeleteTrip = async (tripId) => {
@@ -164,7 +184,15 @@ const Dashboard = () => {
             {user?.name}'s Vault
           </h1>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {user?.username && (
+            <button className="btn" onClick={() => navigate(`/profile/${user.username}`)} style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontWeight: 'bold' }}>
+              My Profile
+            </button>
+          )}
+          <button className="btn btn-secondary" onClick={() => navigate('/edit-profile')}>
+            Edit Profile
+          </button>
           <button className="btn btn-primary" onClick={handleOpenCreateModal}>
             + Create Trip
           </button>
@@ -191,7 +219,15 @@ const Dashboard = () => {
           gap: '2rem'
         }}>
           {trips.map(trip => (
-            <div key={trip._id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+            <div key={trip._id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
+              {trip.coverImage ? (
+                <div style={{ height: '160px', backgroundImage: `url(${trip.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              ) : (
+                <div style={{ height: '160px', background: 'linear-gradient(45deg, #f3f4f6, #e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '2.5rem' }}>🌍</span>
+                </div>
+              )}
+              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, paddingRight: '1rem' }}>{trip.title}</h3>
                 <div style={{ background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -207,6 +243,13 @@ const Dashboard = () => {
               )}
               
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                <button 
+                  onClick={() => navigate(`/trips/${trip._id}`)}
+                  className="btn btn-primary" 
+                  style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}
+                >
+                  View
+                </button>
                 <button 
                   onClick={() => handleOpenEditModal(trip)}
                   className="btn btn-secondary" 
@@ -228,6 +271,7 @@ const Dashboard = () => {
                 >
                   {deletingId === trip._id ? 'Deleting...' : 'Delete'}
                 </button>
+              </div>
               </div>
             </div>
           ))}

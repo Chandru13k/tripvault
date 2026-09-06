@@ -8,6 +8,16 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Name is required'],
       trim: true,
     },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null values to not conflict on unique index
+      trim: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+    },
     email: {
       type: String,
       required: [true, 'Email is required'],

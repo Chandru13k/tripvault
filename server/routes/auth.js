@@ -49,6 +49,8 @@ router.post('/register', async (req, res) => {
         user: {
           id: user._id,
           name: user.name,
+          username: user.username,
+          bio: user.bio,
           email: user.email,
         },
       });
@@ -93,6 +95,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        username: user.username,
+        bio: user.bio,
         email: user.email,
       },
     });
@@ -112,7 +116,13 @@ router.get('/me', protect, async (req, res) => {
     // req.user is set by authMiddleware
     res.json({
       success: true,
-      user: req.user,
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        username: req.user.username,
+        bio: req.user.bio,
+        email: req.user.email
+      },
     });
   } catch (error) {
     console.error('Get profile error:', error.message);

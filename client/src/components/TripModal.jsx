@@ -11,6 +11,7 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
     if (initialData) {
@@ -33,6 +34,7 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       });
     }
     setError('');
+    setImageFile(null);
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
@@ -41,13 +43,17 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
     try {
-      await onSubmit(formData);
+      await onSubmit(formData, imageFile);
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'An error occurred');
@@ -118,6 +124,18 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
               required
               placeholder="e.g. Kyoto, Japan"
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Trip Photo</label>
+            <input
+              type="file"
+              accept="image/*"
+              className="form-input"
+              onChange={handleImageChange}
+              style={{ padding: '0.5rem' }}
+            />
+            {initialData && <small style={{ color: 'var(--text-muted)' }}>Leave empty to keep existing photos.</small>}
           </div>
 
           <div style={{ display: 'flex', gap: '1rem' }}>

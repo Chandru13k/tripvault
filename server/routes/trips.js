@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const Trip = require('../models/Trip');
+const upload = require('../middleware/upload');
 
 // All trip routes are protected
 router.use(protect);
@@ -149,6 +150,39 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ message: 'Invalid Trip ID' });
     }
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/trips/:id/upload
+// @desc    Upload a photo for a trip
+// @access  Private
+const { tripOwnership } = require('../middleware/tripOwnership');
+
+router.post('/:id/upload', tripOwnership, upload.single('image'), async (req, res) => {
+  try {
+    const trip = req.trip;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload a valid image file' });
+    }
+
+    // Get the Cloudinary URL
+    const imageUrl = req.file.path;
+
+    // If it's the first image or no cover image is set, set as cover image
+    if (!trip.coverImage) {
+      trip.coverImage = imageUrl;
+    }
+
+    // Add to photos array
+    trip.photos.push(imageUrl);
+
+    await trip.save();
+
+    res.json(trip);
+  } catch (error) {
+    console.error('Error uploading image:', error.message);
+    res.status(500).json({ message: 'Server error during file upload' });
   }
 });
 
