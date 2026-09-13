@@ -93,11 +93,7 @@ const Dashboard = () => {
         const formData = new FormData();
         formData.append('image', imageFile);
         
-        await api.post(`/api/trips/${tripId}/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        await api.post(`/api/trips/${tripId}/upload`, formData);
       }
 
       showToast(

@@ -39,11 +39,7 @@ const TripDetail = () => {
 
     setUploading(true);
     try {
-      await api.post(`/api/trips/${id}/upload`, formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      await api.post(`/api/trips/${id}/upload`, formData);
       showToast('Photo uploaded successfully!', 'success');
       // Refresh trip data to show new photo
       await fetchTrip();
