@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import TripModal from '../components/TripModal';
+import { CardGridSkeleton } from '../components/SkeletonLoader';
+import { useToast } from '../components/Toast';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -15,6 +17,7 @@ const Dashboard = () => {
   const [deletingId, setDeletingId] = useState(null);
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const fetchTrips = async () => {
     try {
@@ -37,6 +40,7 @@ const Dashboard = () => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load dashboard data. Redirecting...');
+        showToast('Session expired or error loading dashboard.', 'error');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setTimeout(() => {
@@ -48,11 +52,12 @@ const Dashboard = () => {
     };
 
     fetchInitialData();
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    showToast('Logged out successfully', 'info');
     navigate('/login');
   };
 
@@ -74,7 +79,8 @@ const Dashboard = () => {
   const handleSubmitTrip = async (tripData, imageFile) => {
     try {
       let tripId;
-      if (currentTrip) {
+      const isEditing = Boolean(currentTrip);
+      if (isEditing) {
         await api.put(`/api/trips/${currentTrip._id}`, tripData);
         tripId = currentTrip._id;
       } else {
@@ -94,9 +100,14 @@ const Dashboard = () => {
         });
       }
 
+      showToast(
+        isEditing ? 'Trip updated successfully!' : 'Trip created successfully!',
+        'success'
+      );
       await fetchTrips();
     } catch (err) {
-      throw err; // Rethrow to let the modal handle the error display
+      showToast(err.response?.data?.message || 'Failed to save trip.', 'error');
+      throw err;
     }
   };
 
@@ -105,9 +116,10 @@ const Dashboard = () => {
       try {
         setDeletingId(tripId);
         await api.delete(`/api/trips/${tripId}`);
+        showToast('Trip deleted successfully.', 'info');
         await fetchTrips();
       } catch (err) {
-        alert('Failed to delete trip: ' + (err.response?.data?.message || err.message));
+        showToast('Failed to delete trip: ' + (err.response?.data?.message || err.message), 'error');
       } finally {
         setDeletingId(null);
       }
@@ -116,28 +128,12 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '80vh',
-        flexDirection: 'column',
-        gap: '1rem'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: '3px solid rgba(255, 255, 255, 0.1)',
-          borderTopColor: 'var(--color-primary)',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <p style={{ color: 'var(--text-secondary)' }}>Loading your dashboard...</p>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+      <div className="container" style={{ padding: '3rem 1.5rem', flex: 1 }}>
+        <div style={{ marginBottom: '2rem' }}>
+          <div className="skeleton skeleton-title" style={{ width: '30%' }}></div>
+          <div className="skeleton skeleton-text" style={{ width: '20%' }}></div>
+        </div>
+        <CardGridSkeleton count={6} />
       </div>
     );
   }

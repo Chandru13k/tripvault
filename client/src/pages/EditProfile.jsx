@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
+import { useToast } from '../components/Toast';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
@@ -11,24 +12,23 @@ const EditProfile = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get('/api/auth/me');
         setFormData({
           username: res.data.user.username || '',
           bio: res.data.user.bio || ''
         });
       } catch (err) {
         setError('Failed to load profile data');
+        showToast('Failed to load profile data', 'error');
       }
     };
     fetchProfile();
-  }, []);
+  }, [showToast]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,22 +41,22 @@ const EditProfile = () => {
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.put('http://localhost:5000/api/users/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.put('/api/users/profile', formData);
       
       // Update local storage user info
       localStorage.setItem('user', JSON.stringify(res.data.user));
       setSuccess('Profile updated successfully!');
+      showToast('Profile updated successfully!', 'success');
       
       // Navigate to profile page after short delay
       setTimeout(() => {
         navigate(`/profile/${res.data.user.username}`);
-      }, 1500);
+      }, 1200);
       
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      const errMsg = err.response?.data?.message || 'Failed to update profile';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setLoading(false);
     }

@@ -76,6 +76,12 @@ router.put('/profile', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating profile:', error.message);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Username is already taken' });
+    }
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });

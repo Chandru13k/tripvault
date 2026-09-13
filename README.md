@@ -1,18 +1,20 @@
 # TripVault — Travel Memory Journal
 
-TripVault is a full-stack MERN travel memory journal that enables users to log trips, upload photos, and securely store and share travel memories. 
+TripVault is a full-stack MERN (MongoDB, Express, React, Node.js) travel memory journal that enables users to log trips, upload cover & gallery photos, customize public profiles, and securely share travel memories.
 
-This repository contains the completed Week 1 & 2 deliverables, including a highly robust backend server, database connection, premium React frontend authentication, and full Trip Management CRUD operations.
+This repository contains the complete **Week 1 through Week 4** deliverables, featuring an adversarial-tested REST API, JWT authentication, Mongoose schemas, Cloudinary media storage, responsive dark-glass UI, skeleton loaders, toast notifications, SPA routing fallbacks, and production deployment preparation for Render & Vercel.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-* **Backend**: Node.js, Express, MongoDB, Mongoose
-* **Authentication**: JSON Web Token (JWT) & `bcryptjs` for secure password hashing
-* **Frontend**: React (Vite), React Router DOM (v6)
-* **HTTP Client**: Axios (configured with automated JWT interceptors)
-* **Styles**: Custom premium Vanilla CSS design system (Glassmorphism inspired, responsive, and dark-theme oriented)
+* **Backend**: Node.js, Express.js, MongoDB, Mongoose ORM
+* **Cloud Storage**: Cloudinary, Multer, Multer Storage Cloudinary
+* **Authentication**: JSON Web Token (JWT) & `bcryptjs` password hashing (10 salt rounds)
+* **Frontend**: React 19 (Vite), React Router DOM (v7)
+* **HTTP Client**: Axios with centralized request/response interceptors
+* **Styling & UI**: Custom Vanilla CSS Design System (Glassmorphism, Shimmer Skeletons, Toast Notifications, Mobile Drawer Navigation)
+* **Deployment Targets**: Render (Backend Web Service), Vercel (Frontend SPA), MongoDB Atlas (Database)
 
 ---
 
@@ -21,172 +23,181 @@ This repository contains the completed Week 1 & 2 deliverables, including a high
 ```text
 tripvault/
 ├── client/                 ← React (Vite) Frontend
+│   ├── public/
 │   ├── src/
 │   │   ├── components/
-│   │   │   └── ProtectedRoute.jsx
+│   │   │   ├── Footer.jsx         ← Reusable responsive footer
+│   │   │   ├── Navbar.jsx         ← Responsive navbar with mobile hamburger menu
+│   │   │   ├── ProtectedRoute.jsx ← Auth guard component
+│   │   │   ├── SkeletonLoader.jsx ← Shimmer card & detail skeletons
+│   │   │   ├── Toast.jsx          ← Lightweight Toast notification system
+│   │   │   └── TripModal.jsx      ← Create/Edit trip modal
 │   │   ├── pages/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Login.jsx
-│   │   │   └── Register.jsx
-│   │   ├── api.js          ← Reusable Axios Client
-│   │   ├── App.jsx         ← Routing and Navigation
-│   │   └── main.jsx
-│   └── package.json
+│   │   │   ├── Dashboard.jsx      ← Authenticated user dashboard
+│   │   │   ├── EditProfile.jsx    ← Bio & username editor
+│   │   │   ├── Login.jsx          ← Sign in view
+│   │   │   ├── PublicProfile.jsx  ← Unauthenticated public profile view
+│   │   │   ├── Register.jsx       ← Sign up view
+│   │   │   └── TripDetail.jsx     ← Trip detail & photo gallery view
+│   │   ├── api.js                 ← Central Axios instance (uses VITE_API_URL)
+│   │   ├── App.jsx                ← Main routing & global providers
+│   │   └── index.css              ← Glassmorphism tokens & media queries
+│   ├── .env.example
+│   ├── package.json
+│   └── vercel.json                ← SPA routing fallback rules
 ├── server/                 ← Node.js + Express Backend
 │   ├── middleware/
-│   │   └── authMiddleware.js
+│   │   ├── authMiddleware.js      ← JWT verification
+│   │   ├── tripOwnership.js       ← Ownership authorization pre-check
+│   │   └── upload.js              ← Cloudinary & Multer configuration
 │   ├── models/
-│   │   └── User.js
+│   │   ├── Trip.js                ← Mongoose trip schema
+│   │   └── User.js                ← Mongoose user schema
 │   ├── routes/
-│   │   └── auth.js
+│   │   ├── auth.js                ← Auth endpoints
+│   │   ├── trips.js               ← Trip CRUD & upload endpoints
+│   │   └── users.js               ← Public profile & edit endpoints
+│   ├── scripts/
+│   │   ├── testApi.js             ← Automated API tests
+│   │   ├── qa_test.js             ← Security & IDOR test suite
+│   │   └── qa_week3.js            ← Upload & profile test suite
 │   ├── .env.example
 │   ├── .gitignore
-│   ├── index.js
+│   ├── index.js                   ← Express entry point
 │   └── package.json
 └── README.md
 ```
 
 ---
 
-## ⚙️ Prerequisites
+## ⚙️ Prerequisites & Environment Variables
 
-Ensure you have the following installed on your local machine:
-* [Node.js](https://nodejs.org/) (v18.x or higher recommended)
-* [MongoDB](https://www.mongodb.com/try/download/community) running locally or a cloud database instance (MongoDB Atlas)
+Ensure you have the following installed locally:
+* [Node.js](https://nodejs.org/) (v18.x or v22.x)
+* [MongoDB](https://www.mongodb.com/) running locally (`mongodb://127.0.0.1:27017/tripvault`) or a MongoDB Atlas URI
 
----
-
-## 🚀 Installation & Local Run
-
-### 1. Backend Server Setup
-
-Navigate to the `server` directory, install packages, and create your environment configuration:
-
-```bash
-cd server
-npm install
-```
-
-Create a `.env` file in the `server` directory (you can copy the structure from `.env.example`):
+### Server Environment Variables (`server/.env`)
+Create `server/.env` based on `server/.env.example`:
 
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/tripvault
-JWT_SECRET=your_secure_secret_key_here
+JWT_SECRET=your_secure_jwt_secret
+CLIENT_URL=http://localhost:5173
+
+# Cloudinary Storage
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Start the Express development server:
-```bash
-npm run dev
+### Client Environment Variables (`client/.env`)
+Create `client/.env` based on `client/.env.example`:
+
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GITHUB_URL=https://github.com/Chandru13k/TripVault
 ```
-The server will boot and connect to your MongoDB database, listening on port `5000`.
+
+> [!WARNING]
+> NEVER expose `JWT_SECRET`, `MONGO_URI`, or `CLOUDINARY_API_SECRET` to frontend code or commit them to Git.
 
 ---
 
-### 2. Frontend Setup
+## 🚀 Local Installation & Execution
 
-In a new terminal window, navigate to the `client` directory and install packages:
+### 1. Start Backend Server
+
+```bash
+cd server
+npm install
+npm run dev # or npm start
+```
+The server will connect to MongoDB and listen on `http://localhost:5000`.
+
+### 2. Start Frontend App
 
 ```bash
 cd client
 npm install
-```
-
-Start the Vite development web server:
-```bash
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open `http://localhost:5173` in your browser.
 
 ---
 
 ## 🔌 API Endpoints Reference
 
-All Auth endpoints are prefixed with `/api/auth`:
-
+### Authentication Endpoints (`/api/auth`)
 | Method | Endpoint | Description | Protected |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/api/auth/register` | Register a new user profile | No |
+| :--- | :--- | :--- | :---: |
+| **POST** | `/api/auth/register` | Register a new user | No |
 | **POST** | `/api/auth/login` | Authenticate user & return JWT token | No |
-| **GET** | `/api/auth/me` | Retrieve current user profile details | **Yes** (Bearer Token) |
+| **GET** | `/api/auth/me` | Fetch authenticated user profile | **Yes** |
 
-### User Profile Endpoints
-
+### User Profile Endpoints (`/api/users`)
 | Method | Endpoint | Description | Protected |
-| :--- | :--- | :--- | :--- |
+| :--- | :--- | :--- | :---: |
 | **GET** | `/api/users/:username/profile` | Retrieve public user profile & trips | No |
-| **PUT** | `/api/users/profile` | Update logged-in user's profile (bio/username) | **Yes** |
+| **PUT** | `/api/users/profile` | Update user profile (username, bio) | **Yes** |
 
-### Trip Endpoints
-All Trip endpoints are prefixed with `/api/trips` and require authentication (`Authorization: Bearer <token>`).
-
+### Trip Endpoints (`/api/trips`)
 | Method | Endpoint | Description | Protected |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/api/trips` | Create a new trip for the logged-in user | **Yes** |
-| **GET** | `/api/trips` | Retrieve all trips belonging to the logged-in user | **Yes** |
-| **GET** | `/api/trips/:id` | Retrieve a specific trip | **Yes** (Ownership verified) |
-| **PUT** | `/api/trips/:id` | Update a specific trip | **Yes** (Ownership verified) |
-| **DELETE**| `/api/trips/:id` | Delete a specific trip | **Yes** (Ownership verified) |
-| **POST**  | `/api/trips/:id/upload` | Upload a photo to a specific trip | **Yes** (Ownership verified) |
+| :--- | :--- | :--- | :---: |
+| **POST** | `/api/trips` | Create a new trip | **Yes** |
+| **GET** | `/api/trips` | Retrieve logged-in user's trips | **Yes** |
+| **GET** | `/api/trips/:id` | Retrieve single trip details | **Yes** (Ownership Verified) |
+| **PUT** | `/api/trips/:id` | Update a trip | **Yes** (Ownership Verified) |
+| **DELETE**| `/api/trips/:id` | Delete a trip | **Yes** (Ownership Verified) |
+| **POST** | `/api/trips/:id/upload` | Upload cover/gallery photo | **Yes** (Ownership Verified) |
 
 ---
 
-## 🔒 Authentication Flow & Architecture
+## 🌐 Production Deployment Guide
 
-1. **User Sign Up**: User submits their details. Password is encrypted using `bcryptjs` (salt factor 10) in a pre-save hook before registering in the database.
-2. **User Sign In**: User submits credentials. If correct, the backend issues a signed JWT containing the user id.
-3. **Session Store**: The token and user profile object are saved in `localStorage` in the browser.
-4. **Authorized Calls**: The frontend reusable Axios client automatically attaches the `Authorization: Bearer <token>` header to all requests.
-5. **Route Protection**: If the user tries to access `/dashboard` without a token, the frontend redirects them to `/login`. If the token is invalid or expired, Axios interceptor clears the invalid token and securely logs out the user.
-6. **Data Ownership**: On the server, every Trip API validates that the trip belongs to the authenticated user ID (`req.user.id`). No user can access or modify another user's trips, even if they guess the MongoDB ObjectId.
+### Backend: Render Deployment
+- **Live Backend URL**: `https://tripvault-backend-8uhd.onrender.com`
+1. Connect GitHub repository to Render Web Service.
+2. Set **Root Directory** to `server`.
+3. Set **Start Command** to `node index.js`.
+4. Configure environment variables in Render Dashboard:
+   - `MONGO_URI`: MongoDB Atlas connection string
+   - `JWT_SECRET`: Random 256-bit key
+   - `CLIENT_URL`: `https://tripvault-two.vercel.app`
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+
+### Frontend: Vercel Deployment
+- **Live Application URL**: `https://tripvault-two.vercel.app`
+1. Connect GitHub repository to Vercel.
+2. Set **Root Directory** to `client`.
+3. Configure environment variable in Vercel Dashboard:
+   - `VITE_API_URL`: `https://tripvault-backend-8uhd.onrender.com`
+4. Vercel automatically processes `client/vercel.json` for SPA routing fallback (`/index.html`).
 
 ---
 
-## 🧪 Testing API Routes
+## 🧪 Testing & QA Verification
 
-Automated test scripts are provided to verify all CRUD endpoints, security measures, and adversarial constraints:
+Run backend test scripts from the `server` directory:
 
 ```bash
-# From the server directory
 node scripts/testApi.js
 node scripts/qa_test.js
+node scripts/qa_week3.js
 ```
-These scripts verify:
-- Trip Creation & Validation
-- Data isolation (User A cannot see User B's trips)
-- Ownership protection (User B cannot update/delete User A's trips)
-- Security bounds (Adversarial testing)
+
+These automated tests verify:
+- Registration, password hashing, and token issuance.
+- Data isolation (User A cannot access User B's trips).
+- Ownership protection (IDOR defense on GET/PUT/DELETE/Upload).
+- Pre-upload authorization check before Cloudinary processing.
+- Public profile sanitization (email, passwords, secrets strictly omitted).
 
 ---
 
-## 📋 Week 1 Deliverables Checklist
+## 📋 Deliverables Checklist (Weeks 1–4)
 
-- [x] **Public Git Repository**: Structured cleanly with a descriptive README.md.
-- [x] **Running Express Server**: Listening on port `5000` with active MongoDB connection.
-- [x] **Secure User Schema**: Hashed passwords with `bcryptjs`.
-- [x] **Register API**: `POST /api/auth/register` validates input, rejects duplicates, and saves user securely.
-- [x] **Login API**: `POST /api/auth/login` returns token and profile details.
-- [x] **Protected Me Route**: `GET /api/auth/me` verifies tokens and returns authenticated user info.
-- [x] **Vite React UI**: Premium responsive UI pages: Home/Landing, Register, Login, and Dashboard.
-- [x] **Secure Routing**: Protected `/dashboard` path with custom route guard and logout hooks.
-
-## 📋 Week 2 Deliverables Checklist
-
-- [x] **Trip Schema**: Mongoose model with validation and `user` reference.
-- [x] **Trip APIs**: Full CRUD implemented for `/api/trips`.
-- [x] **Ownership Protection**: Backend prevents users from reading, editing, or deleting others' trips.
-- [x] **API Tests**: Automated script testing the endpoints and JWT authorization boundaries.
-- [x] **Dashboard List**: Renders trip cards displaying dates, ratings, and destination details.
-- [x] **Create & Edit Modal**: Pre-fills existing data for editing and validates form submission.
-- [x] **Delete Confirmation**: Verifies intent before removing travel memories.
-- [x] **Loading & Empty States**: User-friendly messaging when the vault is empty or waiting for network response.
-
-## 📋 Week 3 Deliverables Checklist
-
-- [x] **Cloudinary Configuration**: Stored securely in `server/.env` with `.env.example` placeholders.
-- [x] **Image Upload API**: `POST /api/trips/:id/upload` protected by JWT & ownership limits. Uploads images safely to Cloudinary.
-- [x] **Cover & Gallery**: Added `coverImage` and `photos` array to Trip schema. Displays prominently on the UI.
-- [x] **Public Profile API**: `GET /api/users/:username/profile` fetches safe user data without JWT.
-- [x] **Public Profile View**: Navigates to `/profile/:username`. Works in incognito mode.
-- [x] **Edit Profile**: `PUT /api/users/profile` supports username and bio updates. Added UI for users to customize profiles.
-- [x] **Security Integrity**: Passwords, secrets, and other users' details are protected against unauthorized overrides or exposure.
+- [x] **Week 1**: JWT auth, bcrypt hashing, protected `/me`, React login/register UI, ProtectedRoute guard.
+- [x] **Week 2**: Mongoose Trip schema, complete CRUD APIs, ownership middleware, dashboard cards, create/edit modal.
+- [x] **Week 3**: Cloudinary file uploads, cover images & photo gallery, public profile API & page, profile editing.
+- [x] **Week 4**: Reusable Navbar with mobile hamburger menu, Footer with GitHub link, Toast notification system, Skeleton loaders, responsive CSS (375px mobile through desktop), centralized `VITE_API_URL` and `CLIENT_URL`, Vercel SPA routing fallback (`vercel.json`), and Render/Vercel deployment documentation.

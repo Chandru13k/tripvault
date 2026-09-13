@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
+import { useToast } from '../components/Toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const { name, email, password, confirmPassword } = formData;
 
@@ -27,42 +29,49 @@ const Register = () => {
 
     // Client-side validations
     if (!name.trim() || !email.trim() || !password) {
-      setError('Please fill in all fields.');
+      const errMsg = 'Please fill in all fields.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      const errMsg = 'Password must be at least 6 characters long.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      const errMsg = 'Passwords do not match.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await api.post('/api/auth/register', {
+      await api.post('/api/auth/register', {
         name,
         email,
         password,
       });
 
-      setSuccess('Account created successfully! Redirecting to login...');
+      const successMsg = 'Account created successfully! Redirecting to login...';
+      setSuccess(successMsg);
+      showToast('Registration successful! Please log in.', 'success');
       setFormData({ name: '', email: '', password: '', confirmPassword: '' });
       
       // Delay navigation so user can see success message
       setTimeout(() => {
         navigate('/login');
-      }, 2000);
+      }, 1500);
     } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.message || 
-        'An error occurred during registration. Please try again.'
-      );
+      const message = err.response?.data?.message || 'An error occurred during registration. Please try again.';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }

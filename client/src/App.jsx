@@ -7,6 +7,9 @@ import TripDetail from './pages/TripDetail';
 import PublicProfile from './pages/PublicProfile';
 import EditProfile from './pages/EditProfile';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import { ToastProvider } from './components/Toast';
 
 // Landing Page Component
 const Landing = () => {
@@ -86,19 +89,35 @@ const Landing = () => {
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
 
   // Listen for changes to localStorage (e.g. login/logout from within pages)
   useEffect(() => {
     const handleStorageChange = () => {
       setToken(localStorage.getItem('token'));
+      try {
+        setUser(JSON.parse(localStorage.getItem('user')));
+      } catch {
+        setUser(null);
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    // Polling backup because direct window.location redirects don't trigger the storage event on the same tab
     const interval = setInterval(() => {
       const currentToken = localStorage.getItem('token');
       if (currentToken !== token) {
         setToken(currentToken);
+        try {
+          setUser(JSON.parse(localStorage.getItem('user')));
+        } catch {
+          setUser(null);
+        }
       }
     }, 1000);
 
@@ -109,102 +128,52 @@ function App() {
   }, [token]);
 
   return (
-    <Router>
-      {/* Navigation Bar */}
-      <nav className="navbar">
-        <div className="container navbar-container">
-          <Link to="/" className="logo">
-            <span>🗺️</span> TripVault
-          </Link>
-          <ul className="nav-links">
-            <li>
-              <Link to="/" className="nav-link">Home</Link>
-            </li>
-            {token ? (
-              <>
-                <li>
-                  <Link to="/dashboard" className="nav-link">Dashboard</Link>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => {
-                      localStorage.removeItem('token');
-                      localStorage.removeItem('user');
-                      setToken(null);
-                      window.location.href = '/login';
-                    }}
-                    className="btn btn-secondary" 
-                    style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}
-                  >
-                    Logout
-                  </button>
-                </li>
-              </>
-            ) : (
-              <>
-                <li>
-                  <Link to="/login" className="nav-link">Login</Link>
-                </li>
-                <li>
-                  <Link to="/register" className="btn btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem' }}>
-                    Register
-                  </Link>
-                </li>
-              </>
-            )}
-          </ul>
-        </div>
-      </nav>
+    <ToastProvider>
+      <Router>
+        {/* Navigation Bar */}
+        <Navbar token={token} user={user} setToken={setToken} />
 
-      {/* Main Content Area */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
-          <Route path="/register" element={token ? <Navigate to="/dashboard" replace /> : <Register />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/trips/:id" 
-            element={
-              <ProtectedRoute>
-                <TripDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/edit-profile" 
-            element={
-              <ProtectedRoute>
-                <EditProfile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/profile/:username" element={<PublicProfile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+        {/* Main Content Area */}
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/register" element={token ? <Navigate to="/dashboard" replace /> : <Register />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/trips/:id" 
+              element={
+                <ProtectedRoute>
+                  <TripDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/edit-profile" 
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/profile/:username" element={<PublicProfile />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
 
-      {/* Footer */}
-      <footer style={{
-        padding: '2rem 0',
-        textAlign: 'center',
-        borderTop: '1px solid var(--border-color)',
-        color: 'var(--text-muted)',
-        fontSize: '0.875rem'
-      }}>
-        <div className="container">
-          <p>© {new Date().getFullYear()} TripVault. Made with ❤️ for MERN Full Stack Internship.</p>
-        </div>
-      </footer>
-    </Router>
+        {/* Footer */}
+        <Footer />
+      </Router>
+    </ToastProvider>
   );
 }
 
 export default App;
+

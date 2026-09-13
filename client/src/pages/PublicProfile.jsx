@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
+import { ProfileSkeleton } from '../components/SkeletonLoader';
 
 // Public Profile Component
 const PublicProfile = () => {
@@ -13,7 +14,7 @@ const PublicProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/users/${username}/profile`);
+        const res = await api.get(`/api/users/${username}/profile`);
         setProfile(res.data.user);
         setTrips(res.data.trips);
       } catch (err) {
@@ -25,8 +26,8 @@ const PublicProfile = () => {
     fetchProfile();
   }, [username]);
 
-  if (loading) return <div className="container" style={{ padding: '2rem' }}>Loading profile...</div>;
-  if (error) return <div className="container" style={{ padding: '2rem' }}><div className="alert alert-error">{error}</div></div>;
+  if (loading) return <ProfileSkeleton />;
+  if (error) return <div className="container" style={{ padding: '3rem 1.5rem', flex: 1 }}><div className="alert alert-error">{error}</div></div>;
 
   return (
     <div className="container" style={{ padding: '2rem 1rem', maxWidth: '800px', margin: '0 auto' }}>

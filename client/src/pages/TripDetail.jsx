@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
+import { DetailSkeleton } from '../components/SkeletonLoader';
+import { useToast } from '../components/Toast';
 
 const TripDetail = () => {
   const { id } = useParams();
@@ -9,16 +11,16 @@ const TripDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const { showToast } = useToast();
 
   const fetchTrip = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/trips/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/api/trips/${id}`);
       setTrip(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load trip details');
+      const errMsg = err.response?.data?.message || 'Failed to load trip details';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setLoading(false);
     }
@@ -37,17 +39,17 @@ const TripDetail = () => {
 
     setUploading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/trips/${id}/upload`, formData, {
+      await api.post(`/api/trips/${id}/upload`, formData, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
+      showToast('Photo uploaded successfully!', 'success');
       // Refresh trip data to show new photo
       await fetchTrip();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to upload image');
+      const errMsg = err.response?.data?.message || 'Failed to upload image';
+      showToast(errMsg, 'error');
     } finally {
       setUploading(false);
       // Reset input
@@ -55,8 +57,8 @@ const TripDetail = () => {
     }
   };
 
-  if (loading) return <div className="container" style={{ padding: '2rem' }}>Loading trip details...</div>;
-  if (error) return <div className="container" style={{ padding: '2rem' }}><div className="alert alert-error">{error}</div></div>;
+  if (loading) return <DetailSkeleton />;
+  if (error) return <div className="container" style={{ padding: '3rem 1.5rem', flex: 1 }}><div className="alert alert-error">{error}</div></div>;
   if (!trip) return null;
 
   return (
