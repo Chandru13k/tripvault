@@ -125,11 +125,16 @@ const Dashboard = () => {
         }
       }
 
-      const errorMsg =
+      let errorMsg =
         err.response?.data?.message ||
         (typeof err.response?.data === 'string' ? err.response.data : null) ||
         err.message ||
         'Failed to save trip.';
+
+      if (typeof errorMsg === 'string' && errorMsg.trim().startsWith('<')) {
+        errorMsg = 'Server error during trip upload. Please try again.';
+      }
+
       showToast(errorMsg, 'error');
       throw err;
     }

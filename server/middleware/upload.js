@@ -62,15 +62,20 @@ const uploadSingleImage = (fieldName = 'image') => {
         });
 
         req.file.path = cloudinaryResult.secure_url;
+        return next();
       } catch (cloudError) {
         console.warn('Cloudinary upload failed, using Data URL fallback:', cloudError.message);
 
-        const mimeType = req.file.mimetype || 'image/jpeg';
-        const base64Data = req.file.buffer.toString('base64');
-        req.file.path = `data:${mimeType};base64,${base64Data}`;
+        try {
+          const mimeType = req.file.mimetype || 'image/jpeg';
+          const base64Data = req.file.buffer.toString('base64');
+          req.file.path = `data:${mimeType};base64,${base64Data}`;
+          return next();
+        } catch (fallbackErr) {
+          console.error('Data URL fallback failed:', fallbackErr);
+          return res.status(500).json({ message: 'Failed to process image payload' });
+        }
       }
-
-      next();
     });
   };
 };

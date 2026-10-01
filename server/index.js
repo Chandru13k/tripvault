@@ -39,6 +39,14 @@ app.get('/', (req, res) => {
   res.json({ message: 'TripVault API is running...' });
 });
 
+// Global error handler middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err.stack || err);
+  res.status(err.status || err.statusCode || 500).json({
+    message: err.message || 'Internal Server Error'
+  });
+});
+
 // Database connection & Server start
 const connectDB = async () => {
   try {
