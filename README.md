@@ -2,7 +2,7 @@
 
 TripVault is a full-stack MERN (MongoDB, Express, React, Node.js) travel memory journal that enables users to log trips, upload cover & gallery photos, customize public profiles, and securely share travel memories.
 
-This repository features the complete **Week 1 through Week 4** deliverables and the **Premium Glassmorphism Edition** (`client-premium`), including an adversarial-tested REST API, JWT authentication, Mongoose schemas, Cloudinary media storage with local fallback, atomic single-step journey creation with cover uploads, skeleton loaders, toast notifications, SPA routing fallbacks, and production deployment configuration for Render & Vercel.
+This repository features an adversarial-tested REST API, JWT authentication, Mongoose schemas, Cloudinary media storage with local disk fallback, atomic single-step journey creation with cover uploads, skeleton loaders, toast notifications, SPA routing fallbacks, and production deployment configuration for Render & Vercel.
 
 ---
 
@@ -11,10 +11,9 @@ This repository features the complete **Week 1 through Week 4** deliverables and
 * **Backend**: Node.js, Express.js, MongoDB, Mongoose ORM
 * **Cloud Storage & Fallback**: Cloudinary, Multer, Multer Storage Cloudinary with automatic local disk fallback (`uploads/` folder)
 * **Authentication**: JSON Web Token (JWT) & `bcryptjs` password hashing (10 salt rounds)
-* **Premium Frontend (`client-premium`)**: React 19 (Vite), React Router DOM (v7), Lucide Icons
-* **Classic Frontend (`client`)**: React 19 (Vite), React Router DOM (v7)
+* **Frontend**: React 19 (Vite), React Router DOM (v7), Lucide Icons
 * **HTTP Client**: Axios with centralized request/response interceptors & multipart/form-data single-step uploads
-* **Styling & UI**: Custom Vanilla CSS Design System (Glassmorphism 2.0, Dark Mode, Interactive Micro-Animations, Shimmer Skeletons, Toast Notifications, Mobile Drawer Navigation)
+* **Styling & UI**: Custom Vanilla CSS Design System (Glassmorphism, Dark Mode, Interactive Micro-Animations, Shimmer Skeletons, Toast Notifications, Mobile Drawer Navigation)
 * **Deployment Targets**: Render (Backend Web Service), Vercel (Frontend SPA), MongoDB Atlas (Database)
 
 ---
@@ -23,56 +22,55 @@ This repository features the complete **Week 1 through Week 4** deliverables and
 
 ```text
 tripvault/
-├── client-premium/         ← Active Premium React (Vite) Frontend
+├── client-premium/         ← React (Vite) Frontend Application
 │   ├── public/             ← Favicons & vector icons
 │   ├── src/
 │   │   ├── api/            ← Centralized Axios instance (uses VITE_API_URL)
 │   │   ├── assets/         ← Hero images & brand assets
 │   │   ├── components/
 │   │   │   ├── AnimatedCounter.jsx   ← Dynamic stat numbers counter
-│   │   │   ├── CustomCursor.jsx     ← Modern ambient cursor glow
-│   │   │   ├── DestinationModal.jsx ← Quick destination memory modal
-│   │   │   ├── Footer.jsx           ← Premium responsive footer
-│   │   │   ├── MagneticButton.jsx   ← Interactive magnetic CTA buttons
-│   │   │   ├── Navbar.jsx           ← Glassmorphism navbar with mobile drawer
-│   │   │   ├── ProtectedRoute.jsx   ← Auth route guard
-│   │   │   ├── Skeletons.jsx        ← Shimmer loading cards & detail skeletons
-│   │   │   ├── StoryModal.jsx       ← Fullscreen travel story memory viewer
+│   │   │   ├── CustomCursor.jsx     ← Ambient cursor glow effect
+│   │   │   ├── DestinationModal.jsx ← Destination memory modal
+│   │   │   ├── Footer.jsx           ← Responsive footer component
+│   │   │   ├── MagneticButton.jsx   ← Magnetic interactive CTA buttons
+│   │   │   ├── Navbar.jsx           ← Navigation bar with mobile drawer
+│   │   │   ├── ProtectedRoute.jsx   ← Auth route guard component
+│   │   │   ├── Skeletons.jsx        ← Shimmer loading card skeletons
+│   │   │   ├── StoryModal.jsx       ← Travel story viewer modal
 │   │   │   ├── Toast.jsx            ← Notification toast manager
 │   │   │   └── TripModal.jsx        ← Create / Edit Journey modal with cover photo upload
 │   │   ├── config/
-│   │   │   └── images.js            ← Curated high-res Unsplash destination fallbacks
+│   │   │   └── images.js            ← High-resolution destination image fallbacks
 │   │   ├── pages/
-│   │   │   ├── Dashboard.jsx        ← Featured trip hero & 4:3 card collection grid
+│   │   │   ├── Dashboard.jsx        ← Featured trip hero & trip collection grid
 │   │   │   ├── EditProfile.jsx      ← Profile editor (avatar, bio, username)
-│   │   │   ├── Landing.jsx          ← Hero banner, features, and public showcase
-│   │   │   ├── Login.jsx            ← Sign-in view with validation
-│   │   │   ├── PublicProfile.jsx    ← Unauthenticated public trip journal profile
-│   │   │   ├── Register.jsx         ← Sign-up view
-│   │   │   └── TripDetail.jsx       ← Interactive journey view & photo gallery
-│   │   ├── App.jsx                  ← Main router & provider setup
-│   │   └── index.css                ← Glassmorphism design tokens & media queries
+│   │   │   ├── Landing.jsx          ← Landing page, features showcase, & call-to-action
+│   │   │   ├── Login.jsx            ← Sign-in page
+│   │   │   ├── PublicProfile.jsx    ← Public travel profile view
+│   │   │   ├── Register.jsx         ← Sign-up page
+│   │   │   └── TripDetail.jsx       ← Journey details & photo gallery view
+│   │   ├── App.jsx                  ← Application routes & providers
+│   │   └── index.css                ← Design system tokens & utility classes
 │   ├── package.json
-│   └── vercel.json                  ← Vercel SPA routing rewrite rules (`/index.html`)
-├── client/                 ← Classic React (Vite) Frontend
+│   └── vercel.json                  ← Vercel SPA routing rules (`/index.html`)
 ├── server/                 ← Node.js + Express Backend
 │   ├── middleware/
 │   │   ├── authMiddleware.js        ← JWT verification middleware
-│   │   ├── tripOwnership.js         ← IDOR & ownership pre-check middleware
-│   │   └── upload.js                ← Cloudinary storage + local disk fallback streaming
+│   │   ├── tripOwnership.js         ← Ownership authorization middleware
+│   │   └── upload.js                ← Cloudinary storage with local disk fallback
 │   ├── models/
 │   │   ├── Trip.js                  ← Mongoose trip schema
 │   │   └── User.js                  ← Mongoose user schema
 │   ├── routes/
-│   │   ├── auth.js                  ← Register, Login, and /me endpoints
-│   │   ├── trips.js                 ← Atomic Trip CRUD & image upload endpoints
-│   │   └── users.js                 ← Public profiles & profile edit endpoints
+│   │   ├── auth.js                  ← Register, Login, and /me routes
+│   │   ├── trips.js                 ← Trip CRUD & upload endpoints
+│   │   └── users.js                 ← User profile endpoints
 │   ├── scripts/
-│   │   ├── testApi.js               ← Automated API verification
-│   │   ├── qa_test.js               ← Security & IDOR test suite
-│   │   └── qa_week3.js              ← Photo upload & profile test suite
+│   │   ├── testApi.js               ← Automated API tests
+│   │   ├── qa_test.js               ← Security test suite
+│   │   └── qa_week3.js              ← Upload & profile test suite
 │   ├── .env.example
-│   ├── index.js                     ← Express entry point & static `/uploads` serving
+│   ├── index.js                     ← Express server entry point
 │   └── package.json
 └── README.md
 ```
@@ -124,7 +122,7 @@ npm run dev # or npm start
 ```
 The server will connect to MongoDB and listen on `http://localhost:5000`.
 
-### 2. Start Premium Frontend App
+### 2. Start Frontend App
 
 ```bash
 cd client-premium
@@ -153,12 +151,12 @@ Open `http://localhost:5173` in your browser.
 ### Trip Endpoints (`/api/trips`)
 | Method | Endpoint | Description | Protected |
 | :--- | :--- | :--- | :---: |
-| **POST** | `/api/trips` | Atomic trip creation (accepts JSON or `multipart/form-data` with cover image) | **Yes** |
+| **POST** | `/api/trips` | Create trip (accepts JSON or `multipart/form-data` with cover image) | **Yes** |
 | **GET** | `/api/trips` | Retrieve logged-in user's trips | **Yes** |
 | **GET** | `/api/trips/:id` | Retrieve single trip details | **Yes** (Ownership Verified) |
-| **PUT** | `/api/trips/:id` | Update a trip (accepts JSON or `multipart/form-data` with updated cover image) | **Yes** (Ownership Verified) |
+| **PUT** | `/api/trips/:id` | Update a trip (accepts JSON or `multipart/form-data` with cover image) | **Yes** (Ownership Verified) |
 | **DELETE**| `/api/trips/:id` | Delete a trip | **Yes** (Ownership Verified) |
-| **POST** | `/api/trips/:id/upload` | Upload additional gallery photo | **Yes** (Ownership Verified) |
+| **POST** | `/api/trips/:id/upload` | Upload gallery photo | **Yes** (Ownership Verified) |
 
 ---
 
@@ -175,7 +173,7 @@ Open `http://localhost:5173` in your browser.
    - `CLIENT_URL`: `https://tripvault-two.vercel.app`
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 
-### Frontend: Vercel Deployment (Premium Version)
+### Frontend: Vercel Deployment
 - **Live Application URL**: `https://tripvault-two.vercel.app`
 1. Connect GitHub repository to Vercel.
 2. Set **Root Directory** to `client-premium`.
@@ -201,13 +199,3 @@ These automated tests verify:
 - Ownership protection (IDOR defense on GET/PUT/DELETE/Upload).
 - Atomic single-step creation with cover photo attachment and Cloudinary + local disk fallback.
 - Public profile sanitization (email, passwords, secrets strictly omitted).
-
----
-
-## 📋 Deliverables Checklist (Weeks 1–4 & Premium Edition)
-
-- [x] **Week 1**: JWT auth, bcrypt hashing, protected `/me`, React login/register UI, ProtectedRoute guard.
-- [x] **Week 2**: Mongoose Trip schema, complete CRUD APIs, ownership middleware, dashboard cards, create/edit modal.
-- [x] **Week 3**: Cloudinary file uploads with local fallback, cover images & photo gallery, public profile API & page, profile editing.
-- [x] **Week 4**: Reusable Navbar with mobile hamburger drawer, Footer with GitHub link, Toast notification system, Skeleton loaders, responsive CSS (375px mobile through desktop), centralized `VITE_API_URL` and `CLIENT_URL`, Vercel SPA routing fallback (`vercel.json`), and Render/Vercel deployment documentation.
-- [x] **Premium Glassmorphism Edition**: Modern dark glass design system, magnetic CTA buttons, animated counters, custom cursor glow, 4:3 trip collection card grid, featured trip hero banner, and single-step atomic trip & image creation.
