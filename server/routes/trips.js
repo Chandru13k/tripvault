@@ -172,7 +172,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Private
 const { tripOwnership } = require('../middleware/tripOwnership');
 
-router.post('/:id/upload', tripOwnership, handleMulterUpload, async (req, res) => {
+router.post('/:id/upload', handleMulterUpload, tripOwnership, async (req, res) => {
   try {
     const trip = req.trip;
 
