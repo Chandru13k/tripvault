@@ -92,14 +92,23 @@ const Dashboard = () => {
     setCurrentTrip(null);
   };
 
-  const handleSubmitTrip = async (tripData) => {
+  const handleSubmitTrip = async (tripData, imageFile) => {
     try {
+      let tripId;
       const isEditing = Boolean(currentTrip);
 
       if (isEditing) {
         await api.put(`/api/trips/${currentTrip._id}`, tripData);
+        tripId = currentTrip._id;
       } else {
-        await api.post('/api/trips', tripData);
+        const res = await api.post('/api/trips', tripData);
+        tripId = res.data._id;
+      }
+
+      if (imageFile && tripId) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        await api.post(`/api/trips/${tripId}/upload`, formData);
       }
 
       showToast(
