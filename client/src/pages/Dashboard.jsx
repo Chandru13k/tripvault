@@ -78,22 +78,32 @@ const Dashboard = () => {
 
   const handleSubmitTrip = async (tripData, imageFile) => {
     try {
-      let tripId;
       const isEditing = Boolean(currentTrip);
-      if (isEditing) {
-        await api.put(`/api/trips/${currentTrip._id}`, tripData);
-        tripId = currentTrip._id;
-      } else {
-        const res = await api.post('/api/trips', tripData);
-        tripId = res.data._id;
-      }
 
-      // If an image was selected, upload it
-      if (imageFile && tripId) {
+      if (imageFile) {
         const formData = new FormData();
+        Object.keys(tripData).forEach((key) => {
+          if (tripData[key] !== undefined && tripData[key] !== null) {
+            formData.append(key, tripData[key]);
+          }
+        });
         formData.append('image', imageFile);
-        
-        await api.post(`/api/trips/${tripId}/upload`, formData);
+
+        if (isEditing) {
+          await api.put(`/api/trips/${currentTrip._id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          await api.post('/api/trips', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        }
+      } else {
+        if (isEditing) {
+          await api.put(`/api/trips/${currentTrip._id}`, tripData);
+        } else {
+          await api.post('/api/trips', tripData);
+        }
       }
 
       showToast(

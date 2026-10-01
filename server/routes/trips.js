@@ -2,15 +2,17 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const Trip = require('../models/Trip');
-const upload = require('../middleware/upload');
+const { uploadSingleImage } = require('../middleware/upload');
 
 // All trip routes are protected
 router.use(protect);
 
+const handleMulterUpload = uploadSingleImage('image');
+
 // @route   POST /api/trips
 // @desc    Create a trip
 // @access  Private
-router.post('/', async (req, res) => {
+router.post('/', handleMulterUpload, async (req, res) => {
   try {
     const { title, destination, startDate, endDate, description, rating } = req.body;
 
@@ -25,6 +27,11 @@ router.post('/', async (req, res) => {
     if (endDate) tripFields.endDate = endDate;
     if (description) tripFields.description = description;
     if (rating) tripFields.rating = rating;
+
+    if (req.file && req.file.path) {
+      tripFields.coverImage = req.file.path;
+      tripFields.photos = [req.file.path];
+    }
 
     const trip = new Trip(tripFields);
     await trip.save();
@@ -82,7 +89,7 @@ router.get('/:id', async (req, res) => {
 // @route   PUT /api/trips/:id
 // @desc    Update a trip
 // @access  Private
-router.put('/:id', async (req, res) => {
+router.put('/:id', handleMulterUpload, async (req, res) => {
   try {
     const { title, destination, startDate, endDate, description, rating } = req.body;
 
@@ -106,9 +113,16 @@ router.put('/:id', async (req, res) => {
     if (description !== undefined) tripFields.description = description;
     if (rating !== undefined) tripFields.rating = rating;
 
+    const updateOps = { $set: tripFields };
+    if (req.file && req.file.path) {
+      tripFields.coverImage = req.file.path;
+      updateOps.$set = tripFields;
+      updateOps.$push = { photos: req.file.path };
+    }
+
     trip = await Trip.findByIdAndUpdate(
       req.params.id,
-      { $set: tripFields },
+      updateOps,
       { new: true, runValidators: true }
     );
 
@@ -158,7 +172,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Private
 const { tripOwnership } = require('../middleware/tripOwnership');
 
-router.post('/:id/upload', tripOwnership, upload.single('image'), async (req, res) => {
+router.post('/:id/upload', tripOwnership, handleMulterUpload, async (req, res) => {
   try {
     const trip = req.trip;
 
