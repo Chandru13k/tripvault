@@ -106,13 +106,9 @@ const Dashboard = () => {
         formData.append('image', imageFile);
 
         if (isEditing) {
-          await api.put(`/api/trips/${currentTrip._id}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+          await api.put(`/api/trips/${currentTrip._id}`, formData);
         } else {
-          await api.post('/api/trips', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+          await api.post('/api/trips', formData);
         }
       } else {
         if (isEditing) {
