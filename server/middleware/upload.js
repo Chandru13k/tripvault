@@ -38,19 +38,18 @@ const uploadSingleImage = (fieldName = 'image') => {
   const multerHandler = uploadMemory.single(fieldName);
 
   return (req, res, next) => {
-    multerHandler(req, res, async (err) => {
+    multerHandler(req, res, (err) => {
       if (err) {
         console.error('Multer file parsing error:', err.message);
         return res.status(400).json({ message: err.message || 'File upload error' });
       }
 
-      if (!req.file) {
+      if (!req.file || !req.file.buffer) {
         return next();
       }
 
-      // Try uploading buffer to Cloudinary
-      try {
-        const cloudinaryResult = await new Promise((resolve, reject) => {
+      const uploadToCloudinary = () => {
+        return new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             { folder: 'tripvault', resource_type: 'auto' },
             (error, result) => {
@@ -60,22 +59,25 @@ const uploadSingleImage = (fieldName = 'image') => {
           );
           stream.end(req.file.buffer);
         });
+      };
 
-        req.file.path = cloudinaryResult.secure_url;
-        return next();
-      } catch (cloudError) {
-        console.warn('Cloudinary upload failed, using Data URL fallback:', cloudError.message);
-
-        try {
-          const mimeType = req.file.mimetype || 'image/jpeg';
-          const base64Data = req.file.buffer.toString('base64');
-          req.file.path = `data:${mimeType};base64,${base64Data}`;
-          return next();
-        } catch (fallbackErr) {
-          console.error('Data URL fallback failed:', fallbackErr);
-          return res.status(500).json({ message: 'Failed to process image payload' });
-        }
-      }
+      uploadToCloudinary()
+        .then((result) => {
+          req.file.path = result.secure_url;
+          next();
+        })
+        .catch((cloudErr) => {
+          console.warn('Cloudinary upload failed, applying base64 Data URL fallback:', cloudErr.message || cloudErr);
+          try {
+            const mimeType = req.file.mimetype || 'image/jpeg';
+            const base64Data = req.file.buffer.toString('base64');
+            req.file.path = `data:${mimeType};base64,${base64Data}`;
+            next();
+          } catch (fallbackErr) {
+            console.error('Data URL fallback error:', fallbackErr.message);
+            res.status(500).json({ message: 'Failed to process image file' });
+          }
+        });
     });
   };
 };
