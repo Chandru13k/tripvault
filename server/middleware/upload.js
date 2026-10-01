@@ -63,16 +63,11 @@ const uploadSingleImage = (fieldName = 'image') => {
 
         req.file.path = cloudinaryResult.secure_url;
       } catch (cloudError) {
-        console.warn('Cloudinary upload failed, using local disk fallback:', cloudError.message);
+        console.warn('Cloudinary upload failed, using Data URL fallback:', cloudError.message);
 
-        const ext = path.extname(req.file.originalname) || '.jpg';
-        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-        const filePath = path.join(uploadsDir, filename);
-
-        fs.writeFileSync(filePath, req.file.buffer);
-        const protocol = req.protocol || 'http';
-        const host = req.get('host') || 'localhost:5000';
-        req.file.path = `${protocol}://${host}/uploads/${filename}`;
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        const base64Data = req.file.buffer.toString('base64');
+        req.file.path = `data:${mimeType};base64,${base64Data}`;
       }
 
       next();
