@@ -125,7 +125,12 @@ const Dashboard = () => {
         }
       }
 
-      showToast(err.response?.data?.message || 'Failed to save trip.', 'error');
+      const errorMsg =
+        err.response?.data?.message ||
+        (typeof err.response?.data === 'string' ? err.response.data : null) ||
+        err.message ||
+        'Failed to save trip.';
+      showToast(errorMsg, 'error');
       throw err;
     }
   };
