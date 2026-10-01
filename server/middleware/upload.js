@@ -50,14 +50,22 @@ const uploadSingleImage = (fieldName = 'image') => {
 
       const uploadToCloudinary = () => {
         return new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: 'tripvault', resource_type: 'auto' },
-            (error, result) => {
-              if (error) return reject(error);
-              resolve(result);
+          try {
+            const stream = cloudinary.uploader.upload_stream(
+              { folder: 'tripvault', resource_type: 'auto' },
+              (error, result) => {
+                if (error) return reject(error);
+                if (!result || !result.secure_url) return reject(new Error('Invalid Cloudinary response'));
+                resolve(result);
+              }
+            );
+            if (!stream || typeof stream.end !== 'function') {
+              return reject(new Error('Cloudinary stream unavailable'));
             }
-          );
-          stream.end(req.file.buffer);
+            stream.end(req.file.buffer);
+          } catch (streamErr) {
+            reject(streamErr);
+          }
         });
       };
 
