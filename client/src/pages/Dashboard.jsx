@@ -76,23 +76,14 @@ const Dashboard = () => {
     setCurrentTrip(null);
   };
 
-  const handleSubmitTrip = async (tripData, imageFile) => {
-    let createdTripId = null;
-    const isEditing = Boolean(currentTrip);
-
+  const handleSubmitTrip = async (tripData) => {
     try {
+      const isEditing = Boolean(currentTrip);
+
       if (isEditing) {
         await api.put(`/api/trips/${currentTrip._id}`, tripData);
-        createdTripId = currentTrip._id;
       } else {
-        const res = await api.post('/api/trips', tripData);
-        createdTripId = res.data._id;
-      }
-
-      if (imageFile && createdTripId) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        await api.post(`/api/trips/${createdTripId}/upload`, formData);
+        await api.post('/api/trips', tripData);
       }
 
       showToast(
@@ -101,15 +92,7 @@ const Dashboard = () => {
       );
       await fetchTrips();
     } catch (err) {
-      if (!isEditing && createdTripId) {
-        try {
-          await api.delete(`/api/trips/${createdTripId}`);
-        } catch (cleanupErr) {
-          console.error('Failed to cleanup incomplete trip:', cleanupErr);
-        }
-      }
-
-      showToast(err.response?.data?.message || 'Failed to save trip.', 'error');
+      showToast(err.response?.data?.message || err.message || 'Failed to save trip.', 'error');
       throw err;
     }
   };

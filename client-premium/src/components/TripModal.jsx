@@ -47,10 +47,10 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.85) => {
+  const compressAndConvertToBase64 = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) => {
     return new Promise((resolve) => {
       if (!file || !file.type || !file.type.startsWith('image/')) {
-        return resolve(file);
+        return resolve(null);
       }
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -78,39 +78,41 @@ const TripModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) return resolve(file);
-              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            },
-            'image/jpeg',
-            quality
-          );
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
         };
-        img.onerror = () => resolve(file);
+        img.onerror = () => resolve(event.target.result);
       };
-      reader.onerror = () => resolve(file);
+      reader.onerror = () => resolve(null);
     });
   };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const compressed = await compressImage(file);
-      setImageFile(compressed);
-      setImagePreview(URL.createObjectURL(compressed));
+      const dataUrl = await compressAndConvertToBase64(file);
+      if (dataUrl) {
+        setImagePreview(dataUrl);
+        setImageFile(file);
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.startDate && formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
+      alert('End date cannot be earlier than start date.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await onSubmit(formData, imageFile);
+      const payload = { ...formData };
+      if (imagePreview) {
+        payload.coverImage = imagePreview;
+      }
+      await onSubmit(payload, imageFile);
       onClose();
     } catch (err) {
       console.error(err);
